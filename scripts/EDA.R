@@ -67,13 +67,13 @@ top_pcs <- as.data.frame(pca_result$x[, 1:15])
 
 tsne_results <- Rtsne(top_pcs, dims = 2, perplexity = 5, verbose = TRUE)
 
-# 5. Extract t-SNE coordinates
+
 # Add disease_state to tsne_coords
 tsne_coords$disease_state <- vst_data$disease_state
 tsne_coords <- as.data.frame(tsne_results$Y)
 colnames(tsne_coords) <- c("tSNE1", "tSNE2")
 
-# 6. Add metadata for plotting
+# Add metadata for plotting
 tsne_coords$disease_state <- colData_subset$disease_state
 
 

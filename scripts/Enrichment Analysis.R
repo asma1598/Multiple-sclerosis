@@ -6,34 +6,35 @@ library(enrichplot)
 library(AnnotationDbi)
 library(hgu133plus2.db) 
 
-# Convert probe IDs to Entrez IDs
+# Annotation Mapping: Entrez IDs and Gene Symbols to Probe IDs 
 gene_list <- AnnotationDbi::select(
   hgu133plus2.db,
-  keys = rownames(significant_DEGs),  # Probe IDs as rownames
+  keys = rownames(significant_DEGs),  
   columns = c("ENTREZID", "SYMBOL"),
   keytype = "PROBEID"
 )
-sum(is.na(gene_list$ENTREZID))  # Count of probe IDs with no ENTREZID mapping
-sum(is.na(gene_list$SYMBOL))   # Count of probe IDs with no SYMBOL mapping
+dim(gene_list)
+#Checking Null values
+sum(is.na(gene_list$ENTREZID))  
+sum(is.na(gene_list$SYMBOL)) 
+#filter out null values
 gene_list_filtered <- gene_list[!is.na(gene_list$ENTREZID) & !is.na(gene_list$SYMBOL), ]
 
-# Merge with DEGs data
+# preparing DEGS for Merging with annotated gene_list data
 significant_DEGs$PROBEID <- rownames(significant_DEGs)
 
 significant_DEGs <- as.data.frame(significant_DEGs)
 
-significant_DEGs <- merge(significant_DEGs, gene_list, by = "PROBEID")
-head(significant_DEGs)
+significant_DEGs<- merge(significant_DEGs, gene_list_filtered, by = "PROBEID")
 
-significant_DEGs <- na.omit(significant_DEGs)
 dim(significant_DEGs)
-sum(is.na(significant_DEGs))
 
+#GO enrichment  analysis for BP, CC, and MF
 go_enrichment <- enrichGO(
   gene =significant_DEGs$ENTREZID,
   OrgDb = org.Hs.eg.db,
   keyType = "ENTREZID",
-  ont = "ALL",  # Perform analysis for BP, CC, and MF
+  ont = "ALL",  
   pvalueCutoff = 0.05,
   qvalueCutoff = 0.05
 )
@@ -49,7 +50,7 @@ go_enrichment_bp <- enrichGO(
   gene =significant_DEGs$ENTREZID,
   OrgDb = org.Hs.eg.db,
   keyType = "ENTREZID",
-  ont = "BP",  # Perform analysis for BP
+  ont = "BP",  
   pvalueCutoff = 0.05,
   qvalueCutoff = 0.05
 )
@@ -59,8 +60,8 @@ colnames(go_enrichment_bp_df)
 
 #visualizing GO with bar plot
 fit <-plot(barplot(go_enrichment_bp, showCategory=20))
-png("figures/Bar plot for biological process using GO", res=250, width=1200, height=1000)
-# Save the plot to a file (e.g., PNG, PDF, etc.)
+
+# Save the plot to a file 
 ggsave("figures/Bar plot for biological process using GO.jpeg", plot = fit, width = 10, height = 18, dpi = 450)
 
 
@@ -68,7 +69,7 @@ ggsave("figures/Bar plot for biological process using GO.jpeg", plot = fit, widt
 #KEGG Pathway analysis
 mapped_genes <- bitr(significant_DEGs$ENTREZID, 
                      fromType = "ENTREZID", 
-                     toType = "PATH",  # Map to KEGG pathway IDs
+                     toType = "PATH",  
                      OrgDb = org.Hs.eg.db)
 head(mapped_genes)
 dim(mapped_genes)
@@ -83,8 +84,8 @@ kegg_enrichment <- enrichKEGG(
   gene = mapped_genes$ENTREZID,
   organism = "hsa",
   pvalueCutoff = 0.05,
-  minGSSize = 5,  # Minimum number of genes required to consider a pathway
-  maxGSSize = 500  # Maximum number of genes in a pathway
+  minGSSize = 5,  
+  maxGSSize = 500  
 )
 
 # Check the enrichment results in detail
@@ -96,7 +97,7 @@ view(kegg_enrichment)
 # Visualize the KEGG results
 KEGG <- dotplot(kegg_enrichment, showCategory = 10)
 ggsave("figures/Dot plot for enriched pathways using KEGG.jpeg", plot = KEGG, width = 10, height = 15, dpi = 450)
-
+KEGG
 
 
 #SAVING FILES

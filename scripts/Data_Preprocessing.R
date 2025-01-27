@@ -2,6 +2,8 @@ BiocManager::install("DESeq2")
 library(DESeq2)
 library(ggplot2)
 install.packages("gridExtra")
+library(gridExtra)
+
 #checking expression matrix data type and converting it into integer for dseq obj
 class(expression_matrix)
 summary(expression_matrix)
@@ -28,32 +30,34 @@ rownames(gene_metadata)
 
 all(colnames(expression_matrix_int)== rownames(colData_subset))
 all(colnames(expression_matrix_int)%in% rownames(colData_subset))
-# 1. filtering out
-keep <- rowSums(expression_matrix_int >= 10) > (0.5 * ncol(expression_matrix_int))
-filtered_expression_matrix <- expression_matrix_int[keep, ]
-all(colnames(filtered_expression_matrix)%in% rownames(colData_subset))
-all(colnames(filtered_expression_matrix)== rownames(colData_subset))
 
-# 2. Create DESeqDataSet object using the filtered count data
+
+# Create DESeqDataSet object using the filtered count data
 dds <- DESeqDataSetFromMatrix(
-  countData = filtered_expression_matrix,  
+  countData = expression_matrix_int,  
   colData = colData_subset,               
   design = ~ disease_state               
 )
-dds
-# 3. Perform VST transformation
-vst_expression_matrix <- varianceStabilizingTransformation(dds)
 
-# 4. Access the transformed expression matrix
+#filter out low expresseion level genes
+dds$disease_state  <- factor(dds$disease_state, levels = c("multiple sclerosis", 'healthy'))
+dds$disease_state
+keep <-rowSums(counts(dds)) >500
+filtered_dds <-dds[keep,]
+filtered_dds
+# Perform VST transformation
+vst_expression_matrix <- varianceStabilizingTransformation(filtered_dds)
+
+# Access the transformed expression matrix
 vst_expression_matrix <- assay(vst_expression_matrix)
 
-# 5. Check the transformed data
+dim(vst_expression_matrix)
+# Check the transformed data
 head(vst_expression_matrix[, 1:5])
 
 summary(vst_expression_matrix)
 
-# install.packages("gridExtra")
-library(gridExtra)
+
 
 # Boxplot for raw  data
 raw_data <- data.frame(t((expression_matrix_int + 1)))
