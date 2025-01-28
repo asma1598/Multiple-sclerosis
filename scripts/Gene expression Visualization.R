@@ -31,7 +31,7 @@ ggsave("figures/volcano_plot.jpeg", plot = volcano, width = 8, height = 6, dpi =
 
 
 # Combine PROBEIDs of interest
-key_genes <- c(upregulated_genes$PROBEID, downregulated_genes$PROBEID)
+key_genes <- downregulated_genes$PROBEID
 
 # Filter the expression matrix for the selected genes
 filtered_expression_matrix <- expression_matrix[rownames(expression_matrix) %in% key_genes, ]
@@ -57,8 +57,8 @@ VIOLIN_GG <- ggplot(expression_long, aes(x = disease_state, y = Expression, fill
   geom_violin(trim = FALSE) +
   facet_wrap(~ SYMBOL, scales = "free_y") +
   theme_minimal() +
-  labs(title = "Expression of Key Genes in MS and Control Groups",
+  labs(title = "Expression of Downregulated Genes in MS and Control Groups",
        x = "Disease State", y = "Expression Level")
-ggsave("figures/Violin plots for Key Genes of Interest.jpeg",plot=VIOLIN_GG, width = 12,height = 8, dpi = 300 )
+ggsave("figures/Violin plots for downregulated Key Genes of Interest.jpeg",plot=VIOLIN_GG, width = 12,height = 8, dpi = 300 )
 
-
+VIOLIN_GG

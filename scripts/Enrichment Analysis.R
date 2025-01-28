@@ -97,7 +97,7 @@ view(kegg_enrichment)
 # Visualize the KEGG results
 KEGG <- dotplot(kegg_enrichment, showCategory = 10)
 ggsave("figures/Dot plot for enriched pathways using KEGG.jpeg", plot = KEGG, width = 10, height = 15, dpi = 450)
-KEGG
+
 
 
 #SAVING FILES
